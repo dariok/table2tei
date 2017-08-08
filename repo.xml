@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta xmlns="http://exist-db.org/xquery/repo">
+    <description>Tables to TEI</description>
+    <author>Dario Kampkaspar</author>
+    <website/>
+    <status>alpha</status>
+    <license>GNU-LGPL</license>
+    <copyright>true</copyright>
+    <type>application</type>
+    <target>table2tei</target>
+    <prepare>pre-install.xql</prepare>
+    <finish/>
+    <permissions user="kampkaspar" group="dba" mode="rw-rw-r--"/>
+<deployed>2017-08-08T16:45:46.097+02:00</deployed>
+</meta>
