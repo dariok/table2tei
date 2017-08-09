@@ -1,3 +1,7 @@
+xquery version "3.0";
+
+declare option exist:serialize "method=html5 media-type=text/html";
+
 <html>
 	<head>
 		<title>Table Conversion</title>
@@ -15,7 +19,12 @@
 					<br/>
 					<label>select XSLT for further processing (if any): </label>
 					<select name="xslt">
-						<option selected="selected">none</option>&
+						<option selected="selected">none</option>
+						{
+							for $file in doc('adds.xml')//entry
+								return
+									<option value="{$file/@file}">{$file/@label}</option>
+						}
 					</select>
 				</fieldset>
 			</form>
