@@ -38,5 +38,5 @@ let $firstPass :=
 		else transform:transform($incoming, $xslt, ())
 
 return if ($add != 'none')
-	then transform:transform($firstPass, $add, ())
+	then transform:transform($firstPass, doc($add), ())
 	else $firstPass
