@@ -7,6 +7,7 @@
 	version="2.0">
 	
 	<xsl:output indent="yes" />
+	<xsl:param name="heading" select="false()" />
 	
 	<xsl:template match="/">
 		<TEI version="5.0">
@@ -31,7 +32,8 @@
 		<row>
 			<xsl:variable name="free"
 					select="ancestor::sheet:sheetData/preceding-sibling::sheet:sheetViews/sheet:sheetView/sheet:pane[@state='frozen']/@topLeftCell" />
-			<xsl:if test="string-length($free) &gt; 0 and following-sibling::sheet:row/sheet:c[@r=$free]">
+			<xsl:if test="(string-length($free) &gt; 0 and following-sibling::sheet:row/sheet:c[@r=$free])
+				or (not(preceding-sibling::sheet:row) and $heading)">
 				<xsl:attribute name="role">label</xsl:attribute>
 			</xsl:if>
 			<xsl:apply-templates select="sheet:c" />

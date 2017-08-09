@@ -9,6 +9,7 @@
 	version="2.0">
 	
 	<xsl:output indent="yes" />
+	<xsl:param name="heading" select="false()" />
 	
 	<xsl:template match="/">
 		<TEI version="5.0">
@@ -35,6 +36,9 @@
 	
 	<xsl:template match="table:table-row">
 		<row>
+			<xsl:if test="$heading">
+				<xsl:attribute name="role">label</xsl:attribute>
+			</xsl:if>
 			<xsl:apply-templates select="table:table-cell" />
 		</row>
 	</xsl:template>
