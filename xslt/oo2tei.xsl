@@ -17,7 +17,7 @@
 			</teiHeader>
 			<text>
 				<body>
-					<xsl:apply-templates select="/office:document-content/office:body/office:spreadsheet"/>
+					<xsl:apply-templates select="//office:document-content/office:body/office:spreadsheet"/>
 				</body>
 			</text>
 		</TEI>

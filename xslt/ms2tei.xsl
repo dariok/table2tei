@@ -15,7 +15,7 @@
 			</teiHeader>
 			<text>
 				<body>
-					<xsl:apply-templates select="/sheet:worksheet/sheet:sheetData" />
+					<xsl:apply-templates select="//sheet:worksheet/sheet:sheetData" />
 				</body>
 			</text>
 		</TEI>
