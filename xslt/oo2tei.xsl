@@ -30,22 +30,48 @@
 	
 	<xsl:template match="table:table">
 		<table cols="{count(table:table-column)}" rows="{count(table:table-row)}">
+			<head><xsl:apply-templates select="@table:name"/></head>
 			<xsl:apply-templates select="table:table-row" />
 		</table>
 	</xsl:template>
 	
 	<xsl:template match="table:table-row">
 		<row>
-			<xsl:if test="$heading">
+			<xsl:if test="$heading and position() = 1">
 				<xsl:attribute name="role">label</xsl:attribute>
 			</xsl:if>
 			<xsl:apply-templates select="table:table-cell" />
 		</row>
 	</xsl:template>
 	
-	<xsl:template match="table:table-cell">
+	<!-- do not handle empty cells at the end -->
+	<xsl:template match="table:table-cell[not(text:p or following-sibling::table:table-cell)]"/>
+	<xsl:template match="table:table-cell[text:p or following-sibling::table:table-cell]">
+		<xsl:variable name="id" select="generate-id()" />
 		<cell>
+			<xsl:if test="@table:number-columns-spanned">
+				<xsl:attribute name="xml:id" select="$id" />
+			</xsl:if>
 			<xsl:apply-templates select="text:p" />
 		</cell>
+		<xsl:if test="@table:number-columns-repeated and following-sibling::table:table-cell">
+			<xsl:variable name="content">
+				<xsl:apply-templates select="text:p" />
+			</xsl:variable>
+			<xsl:for-each select="1 to xs:integer(@table:number-columns-repeated) - 1">
+				<cell>
+					<!-- in case of columnspan, give all cells the same content as I have -->
+					<xsl:value-of select="$content"/>
+				</cell>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="@table:number-columns-spanned">
+			<xsl:variable name="content">
+				<xsl:apply-templates select="text:p" />
+			</xsl:variable>
+			<xsl:for-each select="1 to xs:integer(@table:number-columns-spanned) - 1">
+				<cell sameAs="{$id}" />
+			</xsl:for-each>
+		</xsl:if>
 	</xsl:template>
 </xsl:stylesheet>
