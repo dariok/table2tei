@@ -48,6 +48,10 @@ let $firstPass :=
 		then transform:transform($incoming, $xslt, $params)
 		else transform:transform($incoming, $xslt, ())
 
-return if ($add != 'none')
+let $result := if ($add != 'none')
 	then transform:transform($firstPass, doc($add), ())
 	else $firstPass
+
+let $filename := $title || '.xml'
+let $header := response:set-header("Content-Disposition", concat("attachment; filename=", $filename))
+return $result
