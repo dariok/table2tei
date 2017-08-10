@@ -42,7 +42,8 @@
 		</table>
 	</xsl:template>
 	
-	<xsl:template match="sheet:row">
+	<xsl:template match="sheet:row[not(sheet:c)]" />
+	<xsl:template match="sheet:row[sheet:c]">
 		<row>
 			<xsl:variable name="free"
 					select="ancestor::sheet:sheetData/preceding-sibling::sheet:sheetViews/sheet:sheetView/sheet:pane[@state='frozen']/@topLeftCell" />
