@@ -14,6 +14,10 @@ let $entry-data := function ($path as xs:string, $data-type as xs:string, $data 
   $data
 }
 
+let $title := if (ends-with(request:get-uploaded-file-name('file'), '.ods'))
+	then substring-before(request:get-uploaded-file-name('file'), '.ods')
+	else substring-before(request:get-uploaded-file-name('file'), '.xslx')
+
 let $origFileData := string(request:get-uploaded-file-data('file'))
 (: unzip erwartet base64Binary, die vom Upload direkt geliefert werden :)
 let $unpack := compression:unzip($origFileData, $filter, (), $entry-data, ())
@@ -32,9 +36,16 @@ let $xslt := if ($type = 'OO')
 let $add := request:get-parameter('xslt', 'none')
 let $post := request:get-parameter('firstheading', false())
 
+let $params :=
+	<parameters>
+		<param name="heading" value="true" />
+		<param name="title" value="{$title}" />
+		<param name="filename" value="{request:get-uploaded-file-name('file')}" />
+	</parameters>
+
 let $firstPass :=
 	if ($post)
-		then transform:transform($incoming, $xslt, <parameters><param name="heading" value="true"/></parameters>)
+		then transform:transform($incoming, $xslt, $params)
 		else transform:transform($incoming, $xslt, ())
 
 return if ($add != 'none')

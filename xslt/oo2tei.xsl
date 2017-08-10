@@ -10,11 +10,25 @@
 	
 	<xsl:output indent="yes" />
 	<xsl:param name="heading" select="false()" />
+	<xsl:param name="title" />
+	<xsl:param name="filename" />
 	
 	<xsl:template match="/">
 		<TEI version="5.0">
 			<teiHeader>
-				<!-- TODO -->
+				<fileDesc>
+					<titleStmt>
+						<title>
+							<xsl:value-of select="$title"/>
+						</title>
+					</titleStmt>
+					<publicationStmt>
+						<p>No information available</p>
+					</publicationStmt>
+					<sourceDesc>
+						<p>Created from <xsl:value-of select="$filename" /> by table2TEI, oo2TEI.xsl on <xsl:value-of select="current-dateTime()"/></p>
+					</sourceDesc>
+				</fileDesc>
 			</teiHeader>
 			<text>
 				<body>
@@ -35,7 +49,8 @@
 		</table>
 	</xsl:template>
 	
-	<xsl:template match="table:table-row">
+	<xsl:template match="table:table-row[not(table:table-cell)]" />
+	<xsl:template match="table:table-row[table:table-cell]">
 		<row>
 			<xsl:if test="$heading and position() = 1">
 				<xsl:attribute name="role">label</xsl:attribute>
