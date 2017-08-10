@@ -32,14 +32,10 @@
 			</teiHeader>
 			<text>
 				<body>
-					<xsl:apply-templates select="//office:document-content/office:body/office:spreadsheet"/>
+					<xsl:apply-templates select="//office:document-content//table:table"/>
 				</body>
 			</text>
 		</TEI>
-	</xsl:template>
-	
-	<xsl:template match="/office:spreadsheet">
-		<xsl:apply-templates select="table:table" />
 	</xsl:template>
 	
 	<xsl:template match="table:table">
@@ -49,8 +45,8 @@
 		</table>
 	</xsl:template>
 	
-	<xsl:template match="table:table-row[not(table:table-cell)]" />
-	<xsl:template match="table:table-row[table:table-cell]">
+	<xsl:template match="table:table-row[not(descendant::text:p)]" />
+	<xsl:template match="table:table-row[descendant::text:p]">
 		<row>
 			<xsl:if test="$heading and position() = 1">
 				<xsl:attribute name="role">label</xsl:attribute>
