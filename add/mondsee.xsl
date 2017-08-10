@@ -8,6 +8,10 @@
 	
 	<xsl:output indent="yes" />
 	
+	<xsl:template match="tei:table">
+		<xsl:apply-templates select="tei:row" />
+	</xsl:template>
+	
 	<xsl:template match="tei:row[not(preceding-sibling::tei:row)]"/>
 	<xsl:template match="tei:row[preceding-sibling::tei:row]">
 		<div type="fragment-entry">
