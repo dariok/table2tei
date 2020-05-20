@@ -59,12 +59,15 @@
   
   <xsl:template match="sheet:sheetData">
     <table cols="{count(preceding-sibling::sheet:cols/sheet:col)}" rows="{count(sheet:row[descendant::sheet:v])}">
-      <xsl:apply-templates select="sheet:row[descendant::sheet:v]">/>
+      <xsl:apply-templates select="sheet:row[descendant::sheet:v]">
+        <xsl:with-param name="cols" select="count(preceding-sibling::sheet:cols/sheet:col)" />
+      </xsl:apply-templates>
     </table>
   </xsl:template>
   
   <xsl:template match="sheet:row[not(sheet:c)]" />
   <xsl:template match="sheet:row[sheet:c]">
+    <xsl:param name="cols" />
     <row>
       <xsl:variable name="free"
           select="ancestor::sheet:sheetData/preceding-sibling::sheet:sheetViews/sheet:sheetView/sheet:pane[@state='frozen']/@topLeftCell" />
@@ -73,7 +76,20 @@
         or (not(preceding-sibling::sheet:row) and $heading)">
         <xsl:attribute name="role">label</xsl:attribute>
       </xsl:if>
-      <xsl:apply-templates select="sheet:c" />
+      <xsl:for-each select="(1 to $cols)">
+        <xsl:variable name="col">
+          <xsl:number value="." format="A" />
+          <xsl:value-of select="$row/@r"/>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$row/sheet:c[@r = $col]">
+            <xsl:apply-templates select="$row/sheet:c[@r = $col || @row]" />
+          </xsl:when>
+          <xsl:otherwise>
+            <cell />
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:for-each>
     </row>
   </xsl:template>
   
