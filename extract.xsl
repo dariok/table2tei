@@ -75,5 +75,24 @@
       xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
       <xsl:sequence select="$sheet" />
     </pkg:part>
+    
+    <xsl:variable name="nameRel">
+      <xsl:value-of select="'xl/worksheets/_rels/sheet' || @sheetId || '.xml.rels'" />
+    </xsl:variable>
+    <xsl:variable name="sheet">
+      <xsl:choose>
+        <xsl:when test="function-available('archive:extract-text')">
+          <xsl:variable name="file" select="file:read-binary($filename)" />
+          <xsl:sequence select="parse-xml(archive:extract-text($file, $nameRel))" use-when="function-available('archive:extract-text')" />
+        </xsl:when>
+        <xsl:when test="function-available('zip:xml-entry')">
+          <xsl:variable name="sheets" select="zip:xml-entry($filename, $nameRel)" use-when="function-available('zip:xml-entry')"/>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+    <pkg:part pkg:name="{$nameRel}"
+      xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+      <xsl:sequence select="$sheet" />
+    </pkg:part>
   </xsl:template>
 </xsl:stylesheet>
