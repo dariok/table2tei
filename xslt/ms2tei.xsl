@@ -27,10 +27,10 @@
   </xsl:template>
   
   <xsl:template match="sheet:sheet">
-    <xsl:variable name="sheet">
+    <xsl:param name="sheet" tunnel="yes">
       <xsl:variable name="id" select="@r:id" />
-      <xsl:value-of select="substring-after(//rel:Relationship[@Id = $id]/@Target, '/')"/>
-    </xsl:variable>
+      <xsl:value-of select="substring-after(//pkg:part[@pkg:name='xl/_rels/workbook.xml.rels']//rel:Relationship[@Id = $id]/@Target, '/')"/>
+    </xsl:param>
     <xsl:result-document href="{@name}.xml">
       <TEI version="5.0">
         <teiHeader>
@@ -50,7 +50,9 @@
         </teiHeader>
         <text>
           <body>
-            <xsl:apply-templates select="//pkg:part[ends-with(@pkg:name, $sheet)]//sheet:sheetData" />
+            <xsl:apply-templates select="//pkg:part[@pkg:name = 'xl/worksheets/' || $sheet]//sheet:sheetData">
+              <xsl:with-param name="sheet" select="$sheet" tunnel="yes" />
+            </xsl:apply-templates>
           </body>
         </text>
       </TEI>
@@ -58,16 +60,19 @@
   </xsl:template>
   
   <xsl:template match="sheet:sheetData">
+    <xsl:param name="sheet" tunnel="yes" />
+    <xsl:variable name="relname" select="$sheet || '.rels'" />
     <table cols="{count(preceding-sibling::sheet:cols/sheet:col)}" rows="{count(sheet:row[descendant::sheet:v])}">
       <xsl:apply-templates select="sheet:row[descendant::sheet:v]">
-        <xsl:with-param name="cols" select="count(preceding-sibling::sheet:cols/sheet:col)" />
+        <xsl:with-param name="cols" select="count(preceding-sibling::sheet:cols/sheet:col)" tunnel="yes" />
+        <xsl:with-param name="rels" select="//pkg:part[ends-with(@pkg:name, $relname)]" tunnel="yes" />
       </xsl:apply-templates>
     </table>
   </xsl:template>
   
   <xsl:template match="sheet:row[not(sheet:c)]" />
   <xsl:template match="sheet:row[sheet:c]">
-    <xsl:param name="cols" />
+    <xsl:param name="cols" tunnel="yes" />
     <row>
       <xsl:variable name="free"
           select="ancestor::sheet:sheetData/preceding-sibling::sheet:sheetViews/sheet:sheetView/sheet:pane[@state='frozen']/@topLeftCell" />
@@ -94,8 +99,20 @@
   </xsl:template>
   
   <xsl:template match="sheet:c">
+    <xsl:param name="rels" tunnel="yes" />
+    <xsl:variable name="r" select="@r"/>
+    
     <cell>
       <xsl:choose>
+        <xsl:when test="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]">
+          <xsl:variable name="hyperlink" select="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]"/>
+          <xsl:variable name="relId" select="$hyperlink/@r:id" />
+          <xsl:variable name="rel" select="$rels//rel:Relationship[@Id = $relId]"/>
+          
+          <ref type="link" target="{$rel/@Target}">
+            <xsl:value-of select="$hyperlink/@display"/>
+          </ref>
+        </xsl:when>
         <xsl:when test="@t='s'">
           <xsl:variable name="num" select="sheet:v + 1"/>
           <xsl:apply-templates select="//sheet:sst/sheet:si[$num]/sheet:t"/>
