@@ -23,13 +23,13 @@
   </xsl:template>
   
   <xsl:template match="pkg:package">
-    <xsl:apply-templates select="pkg:part[contains(@pkg:name, 'workbook.xml')]//sheet:sheet" />
+    <xsl:apply-templates select="pkg:part[@pkg:name =  '/xl/workbook.xml']//sheet:sheet" />
   </xsl:template>
   
   <xsl:template match="sheet:sheet">
     <xsl:param name="sheet" tunnel="yes">
       <xsl:variable name="id" select="@r:id" />
-      <xsl:value-of select="substring-after(//pkg:part[@pkg:name='xl/_rels/workbook.xml.rels']//rel:Relationship[@Id = $id]/@Target, '/')"/>
+      <xsl:value-of select="substring-after(//pkg:part[@pkg:name='/xl/_rels/workbook.xml.rels']//rel:Relationship[@Id = $id]/@Target, '/')"/>
     </xsl:param>
     <xsl:result-document href="{@name}.xml">
       <TEI version="5.0">
@@ -50,7 +50,7 @@
         </teiHeader>
         <text>
           <body>
-            <xsl:apply-templates select="//pkg:part[@pkg:name = 'xl/worksheets/' || $sheet]//sheet:sheetData">
+            <xsl:apply-templates select="//pkg:part[@pkg:name = '/xl/worksheets/' || $sheet]//sheet:sheetData">
               <xsl:with-param name="sheet" select="$sheet" tunnel="yes" />
             </xsl:apply-templates>
           </body>
@@ -115,12 +115,37 @@
         </xsl:when>
         <xsl:when test="@t='s'">
           <xsl:variable name="num" select="sheet:v + 1"/>
-          <xsl:apply-templates select="//sheet:sst/sheet:si[$num]/sheet:t"/>
+          <xsl:apply-templates select="//sheet:sst/sheet:si[$num]/*"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:apply-templates select="sheet:v" />
         </xsl:otherwise>
       </xsl:choose>
     </cell>
+  </xsl:template>
+  
+  <xsl:template match="sheet:r">
+    <xsl:apply-templates select="sheet:t" />
+  </xsl:template>
+  
+  <xsl:template match="sheet:r[sheet:rPr]">
+    <hi>
+      <xsl:attribute name="style">
+        <xsl:apply-templates select="sheet:rPr/*" />
+      </xsl:attribute>
+      <xsl:apply-templates select="sheet:t" />
+    </hi>
+  </xsl:template>
+  
+  <xsl:template match="sheet:i[not(@val) or @val = '1']">
+    <xsl:text>font-variant: italic;</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="sheet:sz">
+    <xsl:value-of select="'font-size: ' || @val || ';'" />
+  </xsl:template>
+  
+  <xsl:template match="sheet:rFont">
+    <xsl:value-of select="'font-family: ' || @val || ';'" />
   </xsl:template>
 </xsl:stylesheet>
