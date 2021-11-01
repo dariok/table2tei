@@ -13,6 +13,7 @@
   <xsl:param name="heading" select="false()" />
   <xsl:param name="title" />
   <xsl:param name="filename" />
+  <xsl:param name="server" />
   
   <xsl:template name="extract">
     <xsl:apply-templates select="/" />
@@ -27,45 +28,66 @@
   </xsl:template>
   
   <xsl:template match="sheet:sheet">
-    <xsl:param name="sheet" tunnel="yes">
-      <xsl:variable name="id" select="@r:id" />
-      <xsl:value-of select="substring-after(//pkg:part[@pkg:name='/xl/_rels/workbook.xml.rels']//rel:Relationship[@Id = $id]/@Target, '/')"/>
-    </xsl:param>
-    <xsl:result-document href="{@name}.xml">
-      <TEI version="5.0">
-        <teiHeader>
-          <fileDesc>
-            <titleStmt>
-              <title>
-                <xsl:value-of select="$title"/>
-              </title>
-            </titleStmt>
-            <publicationStmt>
-              <p>No information available</p>
-            </publicationStmt>
-            <sourceDesc>
-              <p>Created from <xsl:value-of select="$filename" /> by table2TEI, ms2TEI.xsl on <xsl:value-of select="current-dateTime()"/></p>
-            </sourceDesc>
-          </fileDesc>
-        </teiHeader>
-        <text>
-          <body>
-            <xsl:apply-templates select="//pkg:part[@pkg:name = '/xl/worksheets/' || $sheet]//sheet:sheetData">
-              <xsl:with-param name="sheet" select="$sheet" tunnel="yes" />
-            </xsl:apply-templates>
-          </body>
-        </text>
-      </TEI>
-    </xsl:result-document>
+    <xsl:variable name="id" select="@r:id" />
+    <xsl:variable name="sheet"
+      select="//pkg:part[@pkg:name='/xl/_rels/workbook.xml.rels']//rel:Relationship[@Id = $id]/@Target"/>
+    
+    <xsl:apply-templates select="//pkg:part[@pkg:name = '/xl/' || $sheet]">
+      <xsl:with-param name="name" select="@name" tunnel="yes" />
+      <xsl:with-param name="pkgName" select="substring-after($sheet, '/')" tunnel="yes" />
+    </xsl:apply-templates>
+  </xsl:template>
+  
+  <xsl:template match="pkg:part">
+    <xsl:param name="name" tunnel="yes" />
+    
+    <xsl:choose>
+      <xsl:when test="$server != ''">
+        <xsl:call-template name="result" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:result-document href="{$name}.xml">
+          <xsl:call-template name="result" />
+        </xsl:result-document>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+  <xsl:template name="result">
+    <xsl:param name="name" tunnel="yes" />
+    
+    <TEI version="5.0">
+      <teiHeader>
+        <fileDesc>
+          <titleStmt>
+            <title>
+              <xsl:value-of select="$name"/>
+            </title>
+          </titleStmt>
+          <publicationStmt>
+            <p>No information available</p>
+          </publicationStmt>
+          <sourceDesc>
+            <p>Created from <xsl:value-of select="$filename" /> by table2TEI, ms2TEI.xsl on <xsl:value-of select="current-dateTime()"/></p>
+          </sourceDesc>
+        </fileDesc>
+      </teiHeader>
+      <text>
+        <body>
+          <xsl:apply-templates select="descendant::sheet:sheetData" />
+        </body>
+      </text>
+    </TEI>
   </xsl:template>
   
   <xsl:template match="sheet:sheetData">
-    <xsl:param name="sheet" tunnel="yes" />
-    <xsl:variable name="relname" select="$sheet || '.rels'" />
-    <table cols="{count(preceding-sibling::sheet:cols/sheet:col)}" rows="{count(sheet:row[descendant::sheet:v])}">
+    <xsl:param name="pkgName" tunnel="yes" />
+    <xsl:variable name="cols" select="count(preceding-sibling::sheet:cols/sheet:col)" />
+    
+    <table cols="{$cols}" rows="{count(sheet:row[descendant::sheet:v])}">
       <xsl:apply-templates select="sheet:row[descendant::sheet:v]">
-        <xsl:with-param name="cols" select="count(preceding-sibling::sheet:cols/sheet:col)" tunnel="yes" />
-        <xsl:with-param name="rels" select="//pkg:part[ends-with(@pkg:name, $relname)]" tunnel="yes" />
+        <xsl:with-param name="cols" select="$cols" tunnel="yes" />
+        <xsl:with-param name="rels" select="'/xl/worksheets/_rels/' || $pkgName || '.rels'" tunnel="yes" />
       </xsl:apply-templates>
     </table>
   </xsl:template>
@@ -73,6 +95,7 @@
   <xsl:template match="sheet:row[not(sheet:c)]" />
   <xsl:template match="sheet:row[sheet:c]">
     <xsl:param name="cols" tunnel="yes" />
+    
     <row>
       <xsl:variable name="free"
           select="ancestor::sheet:sheetData/preceding-sibling::sheet:sheetViews/sheet:sheetView/sheet:pane[@state='frozen']/@topLeftCell" />
@@ -107,7 +130,7 @@
         <xsl:when test="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]">
           <xsl:variable name="hyperlink" select="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]"/>
           <xsl:variable name="relId" select="$hyperlink/@r:id" />
-          <xsl:variable name="rel" select="$rels//rel:Relationship[@Id = $relId]"/>
+          <xsl:variable name="rel" select="//pkg:part[@pkg:name = $rels]//rel:Relationship[@Id = $relId]"/>
           
           <ref type="link" target="{$rel/@Target}">
             <xsl:value-of select="$hyperlink/@display"/>
