@@ -10,8 +10,12 @@ let $filter := function ($path as xs:string, $data-type as xs:string, $param as 
             return false()
 }
 
-let $entry-data := function ($path as xs:string, $data-type as xs:string, $data as item()?, $param as item()*) {
-  $data
+let $process := function ($path as xs:string, $data-type as xs:string, $data as item()?, $param as item()*) {
+  <pkg:part pkg:name="/{$path}" xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+    <pkg:xmlData>{
+      $data
+    }</pkg:xmlData>
+  </pkg:part>
 }
 
 let $title := if (ends-with(request:get-uploaded-file-name('file'), '.ods'))
@@ -19,13 +23,10 @@ let $title := if (ends-with(request:get-uploaded-file-name('file'), '.ods'))
 	else substring-before(request:get-uploaded-file-name('file'), '.xslx')
 
 let $origFileData := string(request:get-uploaded-file-data('file'))
-(: unzip erwartet base64Binary, die vom Upload direkt geliefert werden :)
-let $unpack := compression:unzip($origFileData, $filter, (), $entry-data, ())
 let $incoming := 
-	<pack>{
-		for $item in $unpack
-			return $item}
-	</pack>
+  <pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">{
+    compression:unzip($origFileData, $filter, (), $process, ())
+  }</pkg:package>
 
 let $type := if (local-name($incoming/*[1]) = 'document-content')
 	then 'OO'
