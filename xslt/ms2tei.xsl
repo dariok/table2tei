@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
   xmlns:sheet="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
   xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage"
   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -123,9 +124,11 @@
   
   <xsl:template match="sheet:c">
     <xsl:param name="rels" tunnel="yes" />
-    <xsl:variable name="r" select="@r"/>
+    <xsl:variable name="r" select="@r" />
+    <xsl:variable name="stylePosition" select="number(@s) + 1" />
     
     <cell>
+      <xsl:apply-templates select="//sheet:cellXfs/sheet:xf[position() = $stylePosition]" />
       <xsl:choose>
         <xsl:when test="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]">
           <xsl:variable name="hyperlink" select="ancestor::sheet:worksheet/sheet:hyperlinks/sheet:hyperlink[@ref = $r]"/>
@@ -170,5 +173,17 @@
   
   <xsl:template match="sheet:rFont">
     <xsl:value-of select="'font-family: ' || @val || ';'" />
+  </xsl:template>
+  
+  <xd:doc>
+    <xd:desc>Evaluate a style definition</xd:desc>
+  </xd:doc>
+  <!-- TODO: This needs further expansion to correctly incorporate fillId, boerderId, xfId and evaluate the apply* attributes -->
+  <xsl:template match="sheet:xf">
+    <xsl:variable name="fontPosition" select="number(@fontId) + 1" />
+    
+    <xsl:attribute name="style">
+      <xsl:apply-templates select="ancestor::sheet:styleSheet/sheet:fonts/sheet:font[position() eq $fontPosition]/*" />
+    </xsl:attribute>
   </xsl:template>
 </xsl:stylesheet>
