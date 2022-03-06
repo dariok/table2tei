@@ -163,12 +163,18 @@
     </hi>
   </xsl:template>
   
+  <xd:doc>
+    <xd:desc>Italiced text</xd:desc>
+  </xd:doc>
   <xsl:template match="sheet:i[not(@val) or @val = '1']">
-    <xsl:text>font-variant: italic;</xsl:text>
+    <xsl:text>font-style: italic;</xsl:text>
   </xsl:template>
   
+  <xd:doc>
+    <xd:desc>Font size</xd:desc>
+  </xd:doc>
   <xsl:template match="sheet:sz">
-    <xsl:value-of select="'font-size: ' || @val || ';'" />
+    <xsl:value-of select="'font-size: ' || @val || 'pt;'" />
   </xsl:template>
   
   <xsl:template match="sheet:rFont">
