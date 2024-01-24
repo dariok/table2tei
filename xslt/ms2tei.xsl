@@ -171,7 +171,14 @@
                <xsl:variable name="rel" select="//pkg:part[@pkg:name = $rels]//rel:Relationship[@Id = $relId]"/>
 
                <ref type="link" target="{$rel/@Target}">
-                  <xsl:value-of select="$hyperlink/@display"/>
+                  <xsl:choose>
+                     <xsl:when test="$hyperlink/@display">
+                        <xsl:value-of select="$hyperlink/@display"/>
+                     </xsl:when>
+                     <xsl:otherwise>
+                        <xsl:value-of select="string($rel/@Target)"/>
+                     </xsl:otherwise>
+                  </xsl:choose>
                </ref>
             </xsl:when>
             <xsl:when test="@t = 's'">
