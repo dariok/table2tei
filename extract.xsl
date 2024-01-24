@@ -10,10 +10,14 @@
   exclude-result-prefixes="#all"
   version="3.0">
   
-  <xsl:output indent="1" />
-  <xsl:param name="filename" />
-  
-  <xsl:template match="/">
+   <xsl:output indent="1" />
+   <xsl:param name="filename" />
+   
+   <xsl:template match="/">
+      <xsl:call-template name="xsl:initial-template" />
+   </xsl:template>
+   
+  <xsl:template name="xsl:initial-template">
     <xsl:if test="not(function-available('file:read-binary')) and not(function-available('zip:xml-entry'))">
       <xsl:message terminate="yes">!!
         Neither file:read-binary nor zip:xml-entry functions are available. Word document
@@ -59,12 +63,15 @@
         </pkg:part>
         <xsl:if test="contains(@Target, 'sheet')">
            <xsl:variable name="rel" select="'xl/worksheets/_rels/' || substring($path, 15) || '.rels'"/>
-          <pkg:Part pkg:name="/{$rel}">
-             <pkg:xmlData>
-                <xsl:sequence select="parse-xml(archive:extract-text($zip, $rel))" use-when="function-available('archive:extract-text')"/>
-                <xsl:sequence select="zip:xml-entry($zip, $rel)" use-when="function-available('zip:xml-entry')"/>
-             </pkg:xmlData>
-          </pkg:Part>
+           <xsl:try>
+              <pkg:part pkg:name="/{$rel}">
+                 <pkg:xmlData>
+                    <xsl:sequence select="parse-xml(archive:extract-text($zip, $rel))" use-when="function-available('archive:extract-text')"/>
+                    <xsl:sequence select="zip:xml-entry($zip, $rel)" use-when="function-available('zip:xml-entry')"/>
+                 </pkg:xmlData>
+              </pkg:part>
+              <xsl:catch />
+           </xsl:try>
         </xsl:if>
       </xsl:for-each>
     </pkg:package>
